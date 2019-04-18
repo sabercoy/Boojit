@@ -19,7 +19,7 @@ export default class App extends React.Component {
 
   render() {
     return (
-      <Text>Test!</Text>
+      <Text>Lets GOOO</Text>
     );
   }
 }
