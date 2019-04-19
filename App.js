@@ -1,25 +1,39 @@
 import React from 'react';
 import { StyleSheet, Platform, Image, Text, View, ScrollView } from 'react-native';
+import { Container } from 'native-base';
+//import { Font } from 'expo';
+import Boojit from './source/components/Boojit';
+import { LoadingSpinner } from './source/components/Controls';
 
 import firebase from 'react-native-firebase';
 
 export default class App extends React.Component {
   constructor() {
     super();
-    this.state = {};
+    this.state = {
+      loadingFonts: true
+    };
   }
 
   async componentDidMount() {
-    // TODO: You: Do firebase things
-    // const { user } = await firebase.auth().signInAnonymously();
-    // console.warn('User -> ', user.toJSON());
+    console.log('loading fonts...');
+    // await Font.loadAsync({
+    //   'Roboto_medium': require('native-base/Fonts/Roboto_medium.ttf')
+    // });
 
-    // await firebase.analytics().logEvent('foo', { bar: '123'});
+    console.log('loaded fonts');
+    this.setState({
+      loadingFonts: false
+    });
   }
 
   render() {
     return (
-      <Text>Lets GOOO</Text>
+      this.state.loadingFonts ? (
+        <LoadingSpinner />
+      ) : (
+        <Boojit />
+      )
     );
   }
 }
