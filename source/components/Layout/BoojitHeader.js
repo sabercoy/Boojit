@@ -12,10 +12,6 @@ const runningAndroid = Platform.OS === 'android';
 const styles = StyleSheet.create({
   header: {
     backgroundColor: Colors.green
-  },
-  androidStatusBar: {
-    height: runningAndroid ? StatusBar.currentHeight : 0,
-    backgroundColor: '#9fe079'
   }
 });
 
@@ -44,13 +40,6 @@ class BoojitHeader extends React.Component {
   render() {
     return (
       <React.Fragment>
-        {
-          runningAndroid ? (                         //the header will be covered up by the status bar in android...
-            <View style={styles.androidStatusBar} /> //...so add a block to push the header down into full view
-          ) : (
-            null
-          )
-        }
         <Header noShadow style={styles.header}>
           <Left>
             <View style={{ marginLeft: '20%' }}>
