@@ -1,15 +1,14 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Spinner, Header, Container, Left, Body, Right, Title } from 'native-base';
-//import { Font } from 'expo';
 import PropTypes from 'prop-types';
 import BoojitHeader from './Layout/BoojitHeader';
-//import BoojitBody from './Layout/BoojitBody';
-//import { Screens } from './Screens/Constants/Types';
-import { LoadingSpinner, /*LightBox,*/ Button } from './Controls';
+import BoojitBody from './Layout/BoojitBody';
+import { Screens } from '../constants/ScreenTypes';
+import { LoadingSpinner, LightBox, Button } from './Controls';
 
 const EMPTY_VIEW = <View />;
-//let lightBoxContent = EMPTY_VIEW;
+let lightBoxContent = EMPTY_VIEW;
 
 class Boojit extends React.Component {
   constructor(props) {
@@ -17,8 +16,8 @@ class Boojit extends React.Component {
     this.state = {
       loading: false,
       canRewind: false,
-      activeScreen: 666/*Screens.Home*/,
-      //showLightBox: false
+      activeScreen: Screens.Categories,
+      showLightBox: false
     };
   }
 
@@ -40,13 +39,13 @@ class Boojit extends React.Component {
     });
   }
 
-  // setShowLightBox = (showLightBox, content = EMPTY_VIEW) => {
-  //   lightBoxContent = content;
+  setShowLightBox = (showLightBox, content = EMPTY_VIEW) => {
+    lightBoxContent = content;
 
-  //   this.setState({
-  //     showLightBox: showLightBox
-  //   });
-  // }
+    this.setState({
+      showLightBox: showLightBox
+    });
+  }
 
   render() {
     return (
@@ -58,19 +57,17 @@ class Boojit extends React.Component {
           activeScreen={this.state.activeScreen}
           setActiveScreen={this.setActiveScreen}
         />
-        {/*
         <BoojitBody
           setAppLoading={this.setLoading}
           setCanRewind={this.setCanRewind}
           activeScreen={this.state.activeScreen}
           setShowLightBox={this.setShowLightBox}
         />
-        */}
-        {/*keep braces------------------------
+        {
           this.state.showLightBox ? (
             <LightBox content={lightBoxContent} />
           ) : null
-        */}
+        }
         {
           this.state.loading ? (
             <LoadingSpinner />

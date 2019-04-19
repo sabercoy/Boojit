@@ -1,12 +1,12 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { Content, Spinner, Header, Container, Left, Body, Right, Title } from 'native-base';
-//import { HomeScreen, StatsScreen, CategoriesScreen } from '../Screens';
-import { LoadingSpinner, /*LightBox*/ } from '../Controls';
+import { HomeScreen, StatsScreen, CategoriesScreen } from '../Screens';
+import { LoadingSpinner, LightBox } from '../Controls';
 import Colors from '../../theme/Colors';
 import RF from 'react-native-responsive-fontsize';
 import PropTypes from 'prop-types';
-//import { Screens } from '../Screens/Constants/Types';
+import { Screens } from '../../constants/ScreenTypes';
 
 const styles = StyleSheet.create({
   container: {
@@ -20,27 +20,27 @@ const styles = StyleSheet.create({
 class BoojitBody extends React.Component {
   getScreen = () => {
     switch (this.props.activeScreen) {
-      // case Screens.Home:
-      //   return (
-      //     <HomeScreen
-      //       setCanRewind={this.props.setCanRewind}
-      //       setAppLoading={this.props.setAppLoading}
-      //     />
-      //   );
-      // case Screens.Categories:
-      //   return (
-      //     <CategoriesScreen
-      //       setShowLightBox={this.props.setShowLightBox}
-      //       setAppLoading={this.props.setAppLoading}
-      //     />
-      //   );
-      // case Screens.Stats:
-      //   return (
-      //     <StatsScreen
-      //       setShowLightBox={this.props.setShowLightBox}
-      //       setAppLoading={this.props.setAppLoading}
-      //     />
-      //   );
+      case Screens.Home:
+        return (
+          <HomeScreen
+            setCanRewind={this.props.setCanRewind}
+            setAppLoading={this.props.setAppLoading}
+          />
+        );
+      case Screens.Categories:
+        return (
+          <CategoriesScreen
+            setShowLightBox={this.props.setShowLightBox}
+            setAppLoading={this.props.setAppLoading}
+          />
+        );
+      case Screens.Stats:
+        return (
+          <StatsScreen
+            setShowLightBox={this.props.setShowLightBox}
+            setAppLoading={this.props.setAppLoading}
+          />
+        );
       default:
         return (
           <Text>DEFAULT</Text>
