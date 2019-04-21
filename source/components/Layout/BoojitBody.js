@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { Content, Spinner, Header, Container, Left, Body, Right, Title } from 'native-base';
 import { HomeScreen, StatsScreen, CategoriesScreen } from '../Screens';
 import { LoadingSpinner, LightBox } from '../Controls';
@@ -8,9 +8,11 @@ import RF from 'react-native-responsive-fontsize';
 import PropTypes from 'prop-types';
 import { Screens } from '../../constants/ScreenTypes';
 
+const screenHeight = Dimensions.get('window').height;
+
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    height: screenHeight,
     backgroundColor: Colors.lightGray,
     alignItems: 'center',
     justifyContent: 'center'

@@ -43,6 +43,7 @@ class TextField extends React.Component {
               placeholderTextColor={Colors.lightGray}
               autoFocus={this.props.autoFocus}
               onSubmitEditing={(event) => this.props.onSubmitValue(event.nativeEvent.text)}
+              onFocus={this.props.onFocus}
             />
             {validityIcon}
           </View>
@@ -60,7 +61,8 @@ TextField.defaultProps = {
   placeholder: '',
   maxLength: null,
   defaultValue: '',
-  onChangeText: undefined
+  onChangeText: undefined,
+  onFocus: () => null
 };
 
 TextField.propTypes = {
@@ -75,7 +77,8 @@ TextField.propTypes = {
   error: PropTypes.bool,
   success: PropTypes.bool,
   defaultValue: PropTypes.string,
-  onChangeText: PropTypes.func
+  onChangeText: PropTypes.func,
+  onFocus: PropTypes.func
 };
 
 export default TextField;

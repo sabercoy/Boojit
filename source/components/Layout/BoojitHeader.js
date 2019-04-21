@@ -39,35 +39,33 @@ class BoojitHeader extends React.Component {
 
   render() {
     return (
-      <React.Fragment>
-        <Header noShadow style={styles.header}>
-          <Left>
-            <View style={{ marginLeft: '20%' }}>
-              <TouchableWithoutFeedback onPress={() => this.props.setActiveScreen(Screens.Home)}>
-                <Icon name={'md-home'} style={{ color: this.props.activeScreen === Screens.Home ? Colors.lightGreen : Colors.white }} />
-              </TouchableWithoutFeedback>
-            </View>
-          </Left>
-          <Body>
-            <Title style={{ fontSize: RF(3) }}>
-              {this.getTitle()}
-            </Title>
-          </Body>
-          <Right>
-            <TouchableWithoutFeedback onPress={this.props.canRewind ? this.rewindLastOperation : () => null}>
-              <Icon name={'md-undo'} style={{ color: this.props.canRewind ? Colors.white : Colors.lightGreen }} />
+      <Header noShadow style={styles.header}>
+        <Left>
+          <View style={{ marginLeft: '20%' }}>
+            <TouchableWithoutFeedback onPress={() => this.props.setActiveScreen(Screens.Home)}>
+              <Icon name={'md-home'} style={{ color: this.props.activeScreen === Screens.Home ? Colors.lightGreen : Colors.white }} />
             </TouchableWithoutFeedback>
-            <Spacer width={'15%'} />
-            <TouchableWithoutFeedback onPress={() => this.props.setActiveScreen(Screens.Categories)}>
-              <Icon name={'md-filing'} style={{ color: this.props.activeScreen === Screens.Categories ? Colors.lightGreen : Colors.white }} />
-            </TouchableWithoutFeedback>
-            <Spacer width={'15%'} />
-            <TouchableWithoutFeedback onPress={() => this.props.setActiveScreen(Screens.Stats)}>
-              <Icon name={'md-pie'} style={{ color: this.props.activeScreen === Screens.Stats ? Colors.lightGreen : Colors.white }} />
-            </TouchableWithoutFeedback>
-          </Right>
-        </Header>
-      </React.Fragment>
+          </View>
+        </Left>
+        <Body>
+          <Title style={{ fontSize: RF(3) }}>
+            {this.getTitle()}
+          </Title>
+        </Body>
+        <Right>
+          <TouchableWithoutFeedback onPress={this.props.canRewind ? this.rewindLastOperation : () => null}>
+            <Icon name={'md-undo'} style={{ color: this.props.canRewind ? Colors.white : Colors.lightGreen }} />
+          </TouchableWithoutFeedback>
+          <Spacer width={'15%'} />
+          <TouchableWithoutFeedback onPress={() => this.props.setActiveScreen(Screens.Categories)}>
+            <Icon name={'md-filing'} style={{ color: this.props.activeScreen === Screens.Categories ? Colors.lightGreen : Colors.white }} />
+          </TouchableWithoutFeedback>
+          <Spacer width={'15%'} />
+          <TouchableWithoutFeedback onPress={() => this.props.setActiveScreen(Screens.Stats)}>
+            <Icon name={'md-pie'} style={{ color: this.props.activeScreen === Screens.Stats ? Colors.lightGreen : Colors.white }} />
+          </TouchableWithoutFeedback>
+        </Right>
+      </Header>
     );
   }
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, Platform, Image, Text, View, ScrollView } from 'react-native';
 import { Container } from 'native-base';
-//import { Font } from 'expo';
 import Boojit from './source/components/Boojit';
 import { LoadingSpinner } from './source/components/Controls';
 
@@ -16,12 +15,6 @@ export default class App extends React.Component {
   }
 
   async componentDidMount() {
-    console.log('loading fonts...');
-    // await Font.loadAsync({
-    //   'Roboto_medium': require('native-base/Fonts/Roboto_medium.ttf')
-    // });
-
-    console.log('loaded fonts');
     this.setState({
       loadingFonts: false
     });

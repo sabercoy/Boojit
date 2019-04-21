@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableHighlight, View, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, TouchableHighlight, View, ScrollView, Dimensions } from 'react-native';
 import { Container, Text, Input, Item, Icon, Picker } from 'native-base';
 import PropTypes from 'prop-types';
 import Colors from '../../../theme/Colors';
@@ -20,14 +20,17 @@ interface IState {
 
 let textBoxDone = false;
 let textBoxValue = 0;
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
+const pageWidth = screenWidth * 0.95;
 
 class MainScreen extends React.Component<IState, IProps> {
   constructor(props) {
     super(props);
     this.state = {
-      minusSelected: true,
       selectedCategory: '',                   //make this their most popular category in didMount()
       textBoxValueValid: false,
+      textFieldFocused: false
       //totalBalance: '',
       //categories: [],
     };
@@ -52,12 +55,6 @@ class MainScreen extends React.Component<IState, IProps> {
     }, 2000);
   }
 
-  onTogglePlusMinus = () => {
-    this.setState(prevState => ({
-      minusSelected: !prevState.minusSelected
-    }));
-  }
-
   onDollarAmountDone = (value) => {
     textBoxDone = true;
     const decimalCount = (value.match(/\./g) === null ? 0 : value.match(/\./g).length);
@@ -68,11 +65,13 @@ class MainScreen extends React.Component<IState, IProps> {
       textBoxValue = parseFloat(value);
 
       this.setState({
-        textBoxValueValid: true
+        textBoxValueValid: true,
+        textFieldFocused: false
       });
     } else {
       this.setState({
-        textBoxValueValid: false
+        textBoxValueValid: false,
+        textFieldFocused: false
       });
     }
   }
@@ -85,53 +84,52 @@ class MainScreen extends React.Component<IState, IProps> {
     });
   }
 
+  onTextFieldFocus = () => {
+    this.setState({
+      textFieldFocused: true
+    });
+  }
+
   render() {
     return (
-      <React.Fragment>
-        <View style={{ flex: 8, width: '95%', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: RF(9) }}>$999,999.99</Text>
+      <View
+        style={{
+          height: screenHeight,
+          width: pageWidth
+        }}
+      >
+        <View style={{ height: '5%' }} />
+        <View style={{ height: '30%', justifyContent: 'center', alignItems: 'center' }}>
+          {
+            this.state.textFieldFocused ? (
+              null
+            ) : ( 
+              <Text style={{ fontSize: RF(8) }}>
+                $999,999,999
+                <Text style={{ fontSize: RF(4) }}>
+                  .99
+                </Text>
+              </Text>
+            )
+          }
         </View>
-        <View style={{ flex: 3.5, flexDirection: 'row', width: '95%' }}>
-          <View style={{ flex: 1, width: '13%' }}>
-            <View style={{ flex: 4 }}>
-              <Button
-                color={this.state.minusSelected ? Colors.white : Colors.gray}
-                large
-                onPress={this.state.minusSelected ? this.onTogglePlusMinus : null}
-              >
-                <Icon name={'md-add'} style={{ fontSize: RF(4), color: (this.state.minusSelected ? Colors.black : Colors.white) }} />
-              </Button>
-            </View>
-            <Spacer flex={0.5} />
-            <View style={{ flex: 4 }}>
-              <Button
-                color={this.state.minusSelected ? Colors.gray : Colors.white}
-                large
-                onPress={this.state.minusSelected ? null : this.onTogglePlusMinus}
-              >
-                <Icon name={'md-remove'} style={{ fontSize: RF(4), color: (this.state.minusSelected ? Colors.white : Colors.black) }} />
-              </Button>
-            </View>
-          </View>
-          <Spacer width={'2%'} />
-          <View style={{ width: '85%' }}>
-            <TextField
-              ref={(me) => { this.textBox = (me ? me.textBox : null); }}  //me is null between renders, so do not try to read from it then
-              onChangeText={this.onTextBoxValueChange}
-              flex={1}
-              width={'100%'}
-              maxLength={11}
-              fontSize={RF(6)}
-              onSubmitValue={this.onDollarAmountDone}
-              error={textBoxDone && !this.state.textBoxValueValid}
-              success={textBoxDone && this.state.textBoxValueValid}
-              moneyField
-              autoFocus
-            />
-          </View>
+        <View style={{ height: '15%', flexDirection: 'row' }}>
+          <TextField
+            ref={(me) => { this.textBox = (me ? me.textBox : null); }}  //me is null between renders, so do not try to read from it then
+            onChangeText={this.onTextBoxValueChange}
+            flex={1}
+            width={'100%'}
+            maxLength={11}
+            fontSize={RF(6)}
+            onSubmitValue={this.onDollarAmountDone}
+            error={textBoxDone && !this.state.textBoxValueValid}
+            success={textBoxDone && this.state.textBoxValueValid}
+            moneyField
+            onFocus={this.onTextFieldFocus}
+          />
         </View>
-        <Spacer flex={0.25} width={'95%'} />
-        <View style={{ flex: 2, width: '95%', backgroundColor: Colors.white, borderRadius: 50 }}>
+        <View style={{ height: '1%' }} />
+        <View style={{ height: '8%', backgroundColor: Colors.white, borderRadius: 50 }}>
           <Picker
             rounded
             selectedValue={this.state.selectedCategory}
@@ -141,19 +139,19 @@ class MainScreen extends React.Component<IState, IProps> {
             <Picker.Item label="JavaScript" value="JavaScript" />
           </Picker>
         </View>
+        <View style={{ height: '2%' }} />
+        <View style={{ height: '30%' }}>
+          <Button
+            disabled={!this.state.textBoxValueValid}
+            color={this.state.textBoxValueValid ? Colors.white : Colors.gray}
+            large
+            onPress={this.onSubmitOperation}
+          >
+            <Icon name={'md-checkmark-circle-outline'} style={{ fontSize: RF(20), color: this.state.textBoxValueValid ? Colors.black : Colors.white }} />
+          </Button>
+        </View>
         <Spacer flex={1} />
-        <Button
-          disabled={!this.state.textBoxValueValid}
-          flex={6}
-          width={'95%'}
-          color={this.state.textBoxValueValid ? Colors.white : Colors.gray}
-          large
-          onPress={this.onSubmitOperation}
-        >
-          <Icon name={'md-checkmark-circle-outline'} style={{ fontSize: RF(20), color: this.state.textBoxValueValid ? Colors.black : Colors.white }} />
-        </Button>
-        <Spacer flex={1} />
-      </React.Fragment>
+      </View>
     );
   }
 }

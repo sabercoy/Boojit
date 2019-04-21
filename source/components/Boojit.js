@@ -16,7 +16,7 @@ class Boojit extends React.Component {
     this.state = {
       loading: false,
       canRewind: false,
-      activeScreen: Screens.Categories,
+      activeScreen: Screens.Home,
       showLightBox: false
     };
   }
