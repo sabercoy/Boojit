@@ -3,6 +3,7 @@ import { StyleSheet, Platform, Image, Text, View, ScrollView, AsyncStorage } fro
 import { Container } from 'native-base';
 import Boojit from './source/components/Boojit';
 import { LoadingSpinner } from './source/components/Controls';
+import RNSecureKeyStore, { ACCESSIBLE } from 'react-native-secure-key-store';
 
 import firebase from 'react-native-firebase';
 
@@ -10,19 +11,71 @@ export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      loadingFonts: true
+      loadingDeviceLoginInfo: true
     };
+    // RNSecureKeyStore.set('boojitEmail', 'sabianpugh12@gmail.com', { accessible: ACCESSIBLE.WHEN_UNLOCKED })
+    //   .then((res) => {
+    //     console.warn(res);
+    //   }, (err) => {
+    //     console.warn(err);
+    //   });
+    // RNSecureKeyStore.set('boojitPassword', 'PENguin12!', { accessible: ACCESSIBLE.WHEN_UNLOCKED })
+    //   .then((res) => {
+    //     console.warn(res);
+    //   }, (err) => {
+    //     console.warn(err);
+    //   });
+
+    // RNSecureKeyStore.get('testKeyForAndroidDevice')
+    //   .then((res) => {
+    //     console.warn(res);
+    //   }, (err) => {
+    //     console.warn(err);
+    //   });
+
+    RNSecureKeyStore.remove('boojitEmail')
+      .then((res) => {
+        console.warn(res);
+      }, (err) => {
+        console.warn(err);
+      });
+    RNSecureKeyStore.remove('boojitPassword')
+      .then((res) => {
+        console.warn(res);
+      }, (err) => {
+        console.warn(err);
+      });
   }
 
   async componentDidMount() {
-    this.setState({
-      loadingFonts: false
-    });
+    try {
+      const username = await RNSecureKeyStore.get('boojitEmail');
+      const password = await RNSecureKeyStore.get('boojitPassword');
+
+      //may not need password?
+
+      this.setState({
+        loadingDeviceLoginInfo: false
+      });
+    } catch {
+      this.setState({
+        loadingDeviceLoginInfo: false
+      });
+    }
+  }
+
+  getDeviceLoginInfo = () => {
+    // RNSecureKeyStore.set('key1', 'value1', { accessible: ACCESSIBLE.WHEN_UNLOCKED })
+    //   .then((res) => {
+    //     console.log(res);
+    //   }, (err) => {
+    //     console.log(err);
+    //   });
   }
 
   render() {
     return (
-      this.state.loadingFonts ? (
+      this.state.loadingDeviceLoginInfo ? (
         <LoadingSpinner />
       ) : (
         <Boojit />

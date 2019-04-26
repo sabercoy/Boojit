@@ -20,7 +20,8 @@
     "react-native-datepicker": "^1.7.2",
     "react-native-firebase": "^5.3.1",
     "react-native-pie-chart": "^1.0.13",
-    "react-native-responsive-fontsize": "^0.1.8"
+    "react-native-responsive-fontsize": "^0.1.8",
+    "react-native-secure-key-store": "^2.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.4.3",

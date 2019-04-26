@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
 import { Content, Spinner, Header, Container, Left, Body, Right, Title } from 'native-base';
-import { HomeScreen, StatsScreen, CategoriesScreen } from '../Screens';
+import { LoginScreen, HomeScreen, StatsScreen, CategoriesScreen } from '../Screens';
 import { LoadingSpinner, LightBox } from '../Controls';
 import Colors from '../../theme/Colors';
 import RF from 'react-native-responsive-fontsize';
@@ -22,6 +22,10 @@ const styles = StyleSheet.create({
 class BoojitBody extends React.Component {
   getScreen = () => {
     switch (this.props.activeScreen) {
+      case Screens.Login:
+        return (
+          <LoginScreen />
+        );
       case Screens.Home:
         return (
           <HomeScreen
