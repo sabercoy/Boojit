@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableWithoutFeedback } from 'react-native';
+import { StyleSheet, View, Text, TouchableWithoutFeedback, Dimensions } from 'react-native';
 import { Content, Spinner, Header, Container, Left, Body, Right, Title, List, ListItem, Icon } from 'native-base';
 import { Button, Spacer, TextField } from '../../Controls';
 import Colors from '../../../theme/Colors';
@@ -19,6 +19,8 @@ interface IState {
 }
 
 let textBoxDone = false;
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
 
 class CategoryAddEdit extends React.Component<IProps, IState> {
   constructor(props) {
@@ -73,7 +75,7 @@ class CategoryAddEdit extends React.Component<IProps, IState> {
 
   render() {
     return (
-      <View style={{ width: '75%', height: '25%', backgroundColor: Colors.lightGray }}>
+      <View style={{ width: screenWidth * 0.75, height: screenHeight * 0.25, backgroundColor: Colors.lightGray }}>
         <View style={{ flex: 20, flexDirection: 'row' }}>
           <Spacer flex={1} />
           <View style={{ flex: 18 }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Platform, Image, Text, View, ScrollView } from 'react-native';
+import { StyleSheet, Platform, Image, Text, View, ScrollView, AsyncStorage } from 'react-native';
 import { Container } from 'native-base';
 import Boojit from './source/components/Boojit';
 import { LoadingSpinner } from './source/components/Controls';

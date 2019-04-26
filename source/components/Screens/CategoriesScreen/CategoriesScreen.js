@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableWithoutFeedback, FlatList } from 'react-native';
+import { StyleSheet, View, Text, TouchableWithoutFeedback, FlatList, Dimensions } from 'react-native';
 import { Content, Spinner, Header, Container, Left, Body, Right, Title, List, ListItem, Icon } from 'native-base';
 import { Button, Spacer, TextField } from '../../Controls';
 import Colors from '../../../theme/Colors';
@@ -19,30 +19,34 @@ interface IState {
   selectedCategory: Category;
 }
 
+const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row'
   },
+  column: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   listContainer: {
-    flex: 0.8,
-    width: '100%'
+    flex: 1,
+    width: '100%',
+    marginRight: screenWidth * 0.04
   },
   listItem: {
     justifyContent: 'flex-end',
-    backgroundColor: 'white'
+    backgroundColor: Colors.white
   },
   listText: {
     fontSize: RF(2.4),
-    width: '85%'
-  },
-  column: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+    width: '80%',
   },
   buttonContainer: {
-    flex: 0.10
+    height: screenHeight * 0.1,
   }
 });
 
@@ -54,7 +58,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
     super(props);
     this.state = {  //allow max of 12 for each so it will fit in pie chart
       plusList: [
-        new Category(1, 1, 'a'),
+        new Category(1, 1, 'alalsfkas'),
         new Category(2, 1, 'b'),
         new Category(3, 1, 'c'),
         new Category(4, 1, 'd'),
@@ -70,7 +74,14 @@ class CategoriesScreen extends React.Component<IProps, IState> {
       minusList: [
         new Category(7, 1, 'a'),
         new Category(8, 1, 'b'),
-        new Category(9, 1, 'c')
+        new Category(9, 1, 'c'),
+        new Category(6, 1, 'f'),
+        new Category(10, 1, 'g'),
+        new Category(11, 1, 'h'),
+        new Category(12, 1, 'i'),
+        new Category(13, 1, 'j'),
+        new Category(14, 1, 'k'),
+        new Category(15, 1, 'l')
       ],
       selectedCategory: new Category()
     };
