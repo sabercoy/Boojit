@@ -44,6 +44,7 @@ class TextField extends React.Component {
               autoFocus={this.props.autoFocus}
               onSubmitEditing={(event) => this.props.onSubmitValue(event.nativeEvent.text)}
               onFocus={this.props.onFocus}
+              secureTextEntry={this.props.passwordField}
             />
             {validityIcon}
           </View>
@@ -62,14 +63,16 @@ TextField.defaultProps = {
   maxLength: null,
   defaultValue: '',
   onChangeText: undefined,
-  onFocus: () => null
+  onFocus: () => null,
+  passwordField: false,
+  onSubmitValue: () => null
 };
 
 TextField.propTypes = {
   flex: PropTypes.number.isRequired,
   width: PropTypes.string.isRequired,
   fontSize: PropTypes.number.isRequired,
-  onSubmitValue: PropTypes.func.isRequired,
+  onSubmitValue: PropTypes.func,
   moneyField: PropTypes.bool,
   autoFocus: PropTypes.bool,
   placeholder: PropTypes.string,
@@ -78,7 +81,8 @@ TextField.propTypes = {
   success: PropTypes.bool,
   defaultValue: PropTypes.string,
   onChangeText: PropTypes.func,
-  onFocus: PropTypes.func
+  onFocus: PropTypes.func,
+  passwordField: PropTypes.bool
 };
 
 export default TextField;

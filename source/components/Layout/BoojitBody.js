@@ -24,7 +24,12 @@ class BoojitBody extends React.Component {
     switch (this.props.activeScreen) {
       case Screens.Login:
         return (
-          <LoginScreen />
+          <LoginScreen
+            setActiveScreen={this.props.setActiveScreen}
+            setShowLightBox={this.props.setShowLightBox}
+            setAppLoading={this.props.setAppLoading}
+            fbAuth={this.props.fbAuth}
+          />
         );
       case Screens.Home:
         return (
@@ -64,10 +69,12 @@ class BoojitBody extends React.Component {
 }
 
 BoojitBody.propTypes = {
+  setActiveScreen: PropTypes.func.isRequired,  
   setAppLoading: PropTypes.func.isRequired,
   setCanRewind: PropTypes.func.isRequired,
   activeScreen: PropTypes.number.isRequired,
-  setShowLightBox: PropTypes.func.isRequired
+  setShowLightBox: PropTypes.func.isRequired,
+  fbAuth: PropTypes.any.isRequired
 };
 
 export default BoojitBody;

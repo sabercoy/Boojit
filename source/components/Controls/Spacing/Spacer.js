@@ -26,8 +26,14 @@ spacer.defaultProps = {
 
 spacer.propTypes = {
   flex: PropTypes.number,
-  height: PropTypes.string,
-  width: PropTypes.string,
+  height: PropTypes.oneOfType([
+    PropTypes.string.isRequired,
+    PropTypes.number.isRequired
+  ]),
+  width: PropTypes.oneOfType([
+    PropTypes.string.isRequired,
+    PropTypes.number.isRequired
+  ]),
   backgroundColor: PropTypes.string
 };
 

@@ -4,73 +4,49 @@ import { Container } from 'native-base';
 import Boojit from './source/components/Boojit';
 import { LoadingSpinner } from './source/components/Controls';
 import RNSecureKeyStore, { ACCESSIBLE } from 'react-native-secure-key-store';
-
 import firebase from 'react-native-firebase';
+
+/*
+ISSUES:
+
+-undo last is available on login screen
+-rendering home screen flashes around'
+-text field on home screen can stay red after login
+
+*/
+
+const BOOJIT_EMAIL = 'boojitEmail';
+const BOOJIT_PASSWORD = 'boojitPassword';
 
 export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      loadingDeviceLoginInfo: true
+      loadingDeviceLoginInfo: true,
+      successGettingLoginInfo: false
     };
-    // RNSecureKeyStore.set('boojitEmail', 'sabianpugh12@gmail.com', { accessible: ACCESSIBLE.WHEN_UNLOCKED })
-    //   .then((res) => {
-    //     console.warn(res);
-    //   }, (err) => {
-    //     console.warn(err);
-    //   });
-    // RNSecureKeyStore.set('boojitPassword', 'PENguin12!', { accessible: ACCESSIBLE.WHEN_UNLOCKED })
-    //   .then((res) => {
-    //     console.warn(res);
-    //   }, (err) => {
-    //     console.warn(err);
-    //   });
 
-    // RNSecureKeyStore.get('testKeyForAndroidDevice')
-    //   .then((res) => {
-    //     console.warn(res);
-    //   }, (err) => {
-    //     console.warn(err);
-    //   });
-
-    RNSecureKeyStore.remove('boojitEmail')
-      .then((res) => {
-        console.warn(res);
-      }, (err) => {
-        console.warn(err);
-      });
-    RNSecureKeyStore.remove('boojitPassword')
-      .then((res) => {
-        console.warn(res);
-      }, (err) => {
-        console.warn(err);
-      });
+    this.fbAuth = firebase.auth();
+    this.fbFirestore = firebase.firestore();
   }
 
   async componentDidMount() {
     try {
-      const username = await RNSecureKeyStore.get('boojitEmail');
-      const password = await RNSecureKeyStore.get('boojitPassword');
-
-      //may not need password?
+      const email = await RNSecureKeyStore.get(BOOJIT_EMAIL);
+      const password = await RNSecureKeyStore.get(BOOJIT_PASSWORD);
+      
+      await this.fbAuth.signInWithEmailAndPassword(email, password);
 
       this.setState({
-        loadingDeviceLoginInfo: false
+        loadingDeviceLoginInfo: false,
+        successGettingLoginInfo: true
       });
     } catch {
       this.setState({
-        loadingDeviceLoginInfo: false
+        loadingDeviceLoginInfo: false,
+        successGettingLoginInfo: false
       });
     }
-  }
-
-  getDeviceLoginInfo = () => {
-    // RNSecureKeyStore.set('key1', 'value1', { accessible: ACCESSIBLE.WHEN_UNLOCKED })
-    //   .then((res) => {
-    //     console.log(res);
-    //   }, (err) => {
-    //     console.log(err);
-    //   });
   }
 
   render() {
@@ -78,7 +54,10 @@ export default class App extends React.Component {
       this.state.loadingDeviceLoginInfo ? (
         <LoadingSpinner />
       ) : (
-        <Boojit />
+        <Boojit
+          successGettingLoginInfo={this.state.successGettingLoginInfo}
+          fbAuth={this.fbAuth}
+        />
       )
     );
   }

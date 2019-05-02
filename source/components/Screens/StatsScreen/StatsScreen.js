@@ -305,7 +305,7 @@ class StatsScreen extends React.Component<IProps, IState> {
 
 StatsScreen.propTypes = {
   setShowLightBox: PropTypes.func.isRequired,
-  setAppLoading: PropTypes.func.isRequired
+  //setAppLoading: PropTypes.func.isRequired    //TODO: use this
 };
 
 export default StatsScreen;

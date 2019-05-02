@@ -39,6 +39,7 @@ module.exports = {
         "func-names": "off",
         "react/jsx-boolean-value": "off",
         "consistent-return": "off",
-        "object-curly-newline": "off"
+        "object-curly-newline": "off",
+        "react/forbid-prop-types": "off"
     }
 };

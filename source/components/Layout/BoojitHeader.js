@@ -6,8 +6,10 @@ import { Button, Spacer } from '../Controls';
 import RF from 'react-native-responsive-fontsize';
 import PropTypes from 'prop-types';
 import { Screens } from '../../constants/ScreenTypes';
+import RNSecureKeyStore, { ACCESSIBLE } from 'react-native-secure-key-store';
 
-const runningAndroid = Platform.OS === 'android';
+const BOOJIT_EMAIL = 'boojitEmail';
+const BOOJIT_PASSWORD = 'boojitPassword';
 
 const styles = StyleSheet.create({
   header: {
@@ -39,13 +41,27 @@ class BoojitHeader extends React.Component {
     }
   }
 
+  onLogout = async () => {
+    this.props.setAppLoading(true);
+    try {
+      await this.props.fbAuth.signOut();
+      await RNSecureKeyStore.remove(BOOJIT_EMAIL);
+      await RNSecureKeyStore.remove(BOOJIT_PASSWORD);
+      this.props.setActiveScreen(Screens.Login);
+    } catch {
+      console.warn('logout failed');
+    }
+    this.props.setAppLoading(false);
+  }
+
   render() {
     const disableHome = this.props.activeScreen === Screens.Login || this.props.activeScreen === Screens.Home;
     const disableCategories = this.props.activeScreen === Screens.Login || this.props.activeScreen === Screens.Categories;
     const disableStats = this.props.activeScreen === Screens.Login || this.props.activeScreen === Screens.Stats;
+    const disableLogout = this.props.activeScreen === Screens.Login;
 
     return (
-      <Header noShadow style={styles.header}>
+      <Header androidStatusBarColor={Colors.darkGreen} style={styles.header}>
         <Left>
           <View style={{ marginLeft: '20%' }}>
             <TouchableWithoutFeedback onPress={disableHome ? () => null : () => this.props.setActiveScreen(Screens.Home)}>
@@ -82,6 +98,13 @@ class BoojitHeader extends React.Component {
               style={{ color: disableStats ? Colors.lightGreen : Colors.white }}
             />
           </TouchableWithoutFeedback>
+          <Spacer width={'15%'} />
+          <TouchableWithoutFeedback onPress={disableLogout ? () => null : this.onLogout}>
+            <Icon
+              name={'md-log-out'}
+              style={{ color: disableLogout ? Colors.lightGreen : Colors.white }}
+            />
+          </TouchableWithoutFeedback>
         </Right>
       </Header>
     );
@@ -93,7 +116,8 @@ BoojitHeader.propTypes = {
   canRewind: PropTypes.bool.isRequired,
   setCanRewind: PropTypes.func.isRequired,
   activeScreen: PropTypes.number.isRequired,
-  setActiveScreen: PropTypes.func.isRequired
+  setActiveScreen: PropTypes.func.isRequired,
+  fbAuth: PropTypes.any.isRequired
 };
 
 export default BoojitHeader;
