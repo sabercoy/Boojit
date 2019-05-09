@@ -57,38 +57,38 @@ class CategoriesScreen extends React.Component<IProps, IState> {
   constructor(props) {
     super(props);
     this.state = {  //allow max of 12 for each so it will fit in pie chart
-      plusList: [
-        new Category(1, 1, 'alalsfkas'),
-        new Category(2, 1, 'b'),
-        new Category(3, 1, 'c'),
-        new Category(4, 1, 'd'),
-        new Category(5, 1, 'e'),
-        new Category(6, 1, 'f'),
-        new Category(10, 1, 'g'),
-        new Category(11, 1, 'h'),
-        new Category(12, 1, 'i'),
-        new Category(13, 1, 'j'),
-        new Category(14, 1, 'k'),
-        new Category(15, 1, 'l')
-      ],
-      minusList: [
-        new Category(7, 1, 'a'),
-        new Category(8, 1, 'b'),
-        new Category(9, 1, 'c'),
-        new Category(6, 1, 'f'),
-        new Category(10, 1, 'g'),
-        new Category(11, 1, 'h'),
-        new Category(12, 1, 'i'),
-        new Category(13, 1, 'j'),
-        new Category(14, 1, 'k'),
-        new Category(15, 1, 'l')
-      ],
+      plusList: [],
+      minusList: [],
       selectedCategory: new Category()
     };
   }
 
-  componentDidMount() {
-    //get the plus and minus lists
+  componentWillMount() {
+    this.props.setAppLoading(true);
+  }
+
+  async componentDidMount() {
+    const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
+    const categories: Category[] = [];
+
+    try {
+      const categoriesResult = await categoriesQuery.get();
+
+      categoriesResult.forEach(c => {
+        const category = c.data();
+
+        categories.push(new Category(category.user_id + category.name, category.user_id, category.name, category.positive));
+      });
+
+      this.setState({
+        plusList: categories.filter(c => c.isPlus),
+        minusList: categories.filter(c => !c.isPlus)
+      });
+    } catch {
+      console.log('FAILED');
+    }
+
+    this.props.setAppLoading(false);
   }
 
   createAddEditBox = () => {
@@ -137,7 +137,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
     this.state.plusList.forEach(category => {
       plusListItems.push(
         {
-          key: category.id.toString(),
+          key: category.id,
           component: (
             <ListItem key={category.id} style={styles.listItem}>
               <Text style={styles.listText}>{category.name}</Text>
@@ -153,7 +153,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
     this.state.minusList.forEach(category => {
       minusListItems.push(
         {
-          key: category.id.toString(),
+          key: category.id,
           component: (
             <ListItem key={category.id} style={styles.listItem}>
               <Text style={styles.listText}>{category.name}</Text>
@@ -211,7 +211,9 @@ class CategoriesScreen extends React.Component<IProps, IState> {
 
 CategoriesScreen.propTypes = {
   setShowLightBox: PropTypes.func.isRequired,
-  //setAppLoading: PropTypes.func.isRequired    //uncomment when go to actually use
+  setAppLoading: PropTypes.func.isRequired,
+  fbFirestore: PropTypes.any.isRequired,  
+  userID: PropTypes.string.isRequired
 };
 
 export default CategoriesScreen;

@@ -33,7 +33,6 @@ class MainScreen extends React.Component<IState, IProps> {
       textBoxDone: false,
       textBoxValueValid: false,
       totalBalance: null
-      //categories: [],
     };
     this.textBox = React.createRef();
   }

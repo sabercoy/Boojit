@@ -46,6 +46,8 @@ class BoojitBody extends React.Component {
           <CategoriesScreen
             setShowLightBox={this.props.setShowLightBox}
             setAppLoading={this.props.setAppLoading}
+            fbFirestore={this.props.fbFirestore}
+            userID={this.props.userID}
           />
         );
       case Screens.Stats:
