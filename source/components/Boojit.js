@@ -18,6 +18,7 @@ interface IState {
 
 const EMPTY_VIEW = <View />;
 let lightBoxContent = EMPTY_VIEW;
+let operationCount = 0;
 
 class Boojit extends React.Component<IState, IProps> {
   constructor(props) {
@@ -31,8 +32,9 @@ class Boojit extends React.Component<IState, IProps> {
   }
 
   setLoading = (isLoading) => {
+    operationCount += (isLoading ? 1 : -1);
     this.setState({
-      loading: isLoading
+      loading: operationCount > 0
     });
   }
 
@@ -66,6 +68,7 @@ class Boojit extends React.Component<IState, IProps> {
           activeScreen={this.state.activeScreen}
           setActiveScreen={this.setActiveScreen}
           fbAuth={this.props.fbAuth}
+          setUserID={this.props.setUserID}
         />
         <BoojitBody
           setActiveScreen={this.setActiveScreen}
@@ -74,6 +77,9 @@ class Boojit extends React.Component<IState, IProps> {
           activeScreen={this.state.activeScreen}
           setShowLightBox={this.setShowLightBox}
           fbAuth={this.props.fbAuth}
+          fbFirestore={this.props.fbFirestore}
+          userID={this.props.userID}
+          setUserID={this.props.setUserID}
         />
         {
           this.state.showLightBox ? (
@@ -92,7 +98,10 @@ class Boojit extends React.Component<IState, IProps> {
 
 Boojit.propTypes = {
   successGettingLoginInfo: PropTypes.bool.isRequired,
-  fbAuth: PropTypes.any.isRequired
+  fbAuth: PropTypes.any.isRequired,
+  fbFirestore: PropTypes.any.isRequired,
+  userID: PropTypes.string.isRequired,
+  setUserID: PropTypes.func.isRequired
 };
 
 export default Boojit;

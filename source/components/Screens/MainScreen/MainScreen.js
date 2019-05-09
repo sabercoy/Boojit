@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Colors from '../../../theme/Colors';
 import { Button, TextField, Spacer } from '../../Controls';
 import RF from 'react-native-responsive-fontsize';
-import { Category } from '../../../classes';
+import { Category, Transaction } from '../../../classes';
 
 interface IProps {
   setAppLoading: (isLoading: boolean) => void;
@@ -18,45 +18,72 @@ interface IState {
   textBoxValueValid: boolean;
 }
 
-let textBoxDone = false;
 let textBoxValue = 0;
 const screenHeight = Dimensions.get('window').height;
 const screenWidth = Dimensions.get('window').width;
+const pageHeight = screenHeight * 0.85;
 const pageWidth = screenWidth * 0.95;
 
 class MainScreen extends React.Component<IState, IProps> {
   constructor(props) {
     super(props);
     this.state = {
-      selectedCategory: '',                   //make this their most popular category in didMount()
+      categories: [],
+      selectedCategory: '',
+      textBoxDone: false,
       textBoxValueValid: false,
-      textFieldFocused: false
-      //totalBalance: '',
+      totalBalance: null
       //categories: [],
     };
-
     this.textBox = React.createRef();
   }
 
-  componentDidMount() {
-    //fetch data
+  componentWillMount() {
+    this.props.setAppLoading(true);
+  }
+
+  async componentDidMount() {
+    const transactionsQuery = this.props.fbFirestore.collection('transactions').where('user_id', '==', this.props.userID);
+    const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
+    const categories = [];
+    let total = 0;
+
+    try {
+      const [transactionsResult, categoriesResult] = await Promise.all([transactionsQuery.get(), categoriesQuery.get()]);
+
+      transactionsResult.forEach(t => {
+        total += t.data().amount;
+      });
+
+      categoriesResult.forEach(c => {
+        categories.push(c.data().name);
+      });
+
+      this.setState({
+        totalBalance: total,
+        categories: categories
+      });
+    } catch {
+      console.log('FAILED');
+    }
+
+    this.props.setAppLoading(false);
   }
 
   onSubmitOperation = () => {
     this.props.setAppLoading(true);
     setTimeout(() => {
       this.props.setAppLoading(false);
-      textBoxDone = false;
       this.textBox.clear();
       this.props.setCanRewind(true);
       this.setState({
-        textBoxValueValid: false
+        textBoxValueValid: false,
+        textBoxDone: false
       });
     }, 2000);
   }
 
   onDollarAmountDone = (value) => {
-    textBoxDone = true;
     const decimalCount = (value.match(/\./g) === null ? 0 : value.match(/\./g).length);
     const otherCharCount = (value.match(/[^0-9.]/g) === null ? 0 : value.match(/[^0-9.]/g).length);
     const digitsAfterDecimalCount = (decimalCount === 1 ? value.split('.')[1].length : 0);
@@ -66,99 +93,109 @@ class MainScreen extends React.Component<IState, IProps> {
 
       this.setState({
         textBoxValueValid: true,
-        textFieldFocused: false
+        textBoxDone: true
       });
     } else {
       this.setState({
         textBoxValueValid: false,
-        textFieldFocused: false
+        textBoxDone: true
       });
     }
   }
 
   onTextBoxValueChange = () => {
-    textBoxDone = false;
-
     this.setState({
-      textBoxValueValid: false
+      textBoxValueValid: false,
+      textBoxDone: false
     });
   }
 
-  onTextFieldFocus = () => {
-    this.setState({
-      textFieldFocused: true
-    });
+  formatTotal = (amount: number): string[] => {
+    const stringAmount = amount.toFixed(2);
+    const [whole, decimal] = stringAmount.split('.');
+    const lastIndex = whole.length - 1;
+    let formattedWhole = '';
+    let count = 0;
+
+    for (let i = lastIndex; i >= 0; i--) {
+      if (i !== lastIndex && count % 3 === 0) {
+        formattedWhole = ',' + formattedWhole;
+      }
+      formattedWhole = whole[i] + formattedWhole;
+      count++;
+    }
+
+    return [formattedWhole, decimal];
   }
 
   render() {
+    const formattedTotal = this.state.totalBalance === null ? ['', ''] : this.formatTotal(this.state.totalBalance);
+    const enableSubmit = this.state.textBoxValueValid && this.state.selectedCategory;
+
     return (
-      <View
-        style={{
-          height: screenHeight,
-          width: pageWidth
-        }}
+      <ScrollView
+        scrollEnabled={false}
       >
-        <View style={{ height: '5%' }} />
-        <View style={{ height: '30%', justifyContent: 'center', alignItems: 'center' }}>
-          {
-            this.state.textFieldFocused ? (
-              null
-            ) : ( 
-              <Text style={{ fontSize: RF(8) }}>
-                $999,999,999
-                <Text style={{ fontSize: RF(4) }}>
-                  .99
-                </Text>
+        <View
+          style={{
+            height: pageHeight,
+            width: pageWidth
+          }}
+        >
+          <View style={{ height: '35%', justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: RF(8) }}>
+              {this.state.totalBalance === null ? '...' : '$' + formattedTotal[0]}
+              <Text style={{ fontSize: RF(4) }}>
+                {this.state.totalBalance === null ? '' : '.' + formattedTotal[1]}
               </Text>
-            )
-          }
+            </Text>
+          </View>
+          <View style={{ height: '15%', flexDirection: 'row' }}>
+            <TextField
+              ref={(me) => { this.textBox = (me ? me.textBox : null); }}  //me is null between renders, so do not try to read from it then
+              onChangeText={this.onTextBoxValueChange}
+              flex={1}
+              width={'100%'}
+              maxLength={11}
+              fontSize={RF(6)}
+              onSubmitValue={this.onDollarAmountDone}
+              error={this.state.textBoxDone && !this.state.textBoxValueValid}
+              success={this.state.textBoxDone && this.state.textBoxValueValid}
+              moneyField
+            />
+          </View>
+          <View style={{ height: '1%' }} />
+          <View style={{ height: '10%', backgroundColor: Colors.white, borderRadius: 50 }}>
+            <Picker
+              rounded
+              selectedValue={this.state.selectedCategory}
+              onValueChange={(newValue) => { this.setState({ selectedCategory: newValue }); }}
+            >
+              {this.state.categories.map(i => <Picker.Item key={i} label={i} value={i} />)}
+            </Picker>
+          </View>
+          <View style={{ height: '4%' }} />
+          <View style={{ height: '35%' }}>
+            <Button
+              disabled={!enableSubmit}
+              color={enableSubmit ? Colors.white : Colors.gray}
+              large
+              onPress={this.onSubmitOperation}
+            >
+              <Icon name={'md-checkmark-circle-outline'} style={{ fontSize: RF(20), color: enableSubmit ? Colors.black : Colors.white }} />
+            </Button>
+          </View>
+          <Spacer flex={1} />
         </View>
-        <View style={{ height: '15%', flexDirection: 'row' }}>
-          <TextField
-            ref={(me) => { this.textBox = (me ? me.textBox : null); }}  //me is null between renders, so do not try to read from it then
-            onChangeText={this.onTextBoxValueChange}
-            flex={1}
-            width={'100%'}
-            maxLength={11}
-            fontSize={RF(6)}
-            onSubmitValue={this.onDollarAmountDone}
-            error={textBoxDone && !this.state.textBoxValueValid}
-            success={textBoxDone && this.state.textBoxValueValid}
-            moneyField
-            onFocus={this.onTextFieldFocus}
-          />
-        </View>
-        <View style={{ height: '1%' }} />
-        <View style={{ height: '8%', backgroundColor: Colors.white, borderRadius: 50 }}>
-          <Picker
-            rounded
-            selectedValue={this.state.selectedCategory}
-            onValueChange={(newValue) => { this.setState({ selectedCategory: newValue }); }}
-          >
-            <Picker.Item label="Java" value="Java" />
-            <Picker.Item label="JavaScript" value="JavaScript" />
-          </Picker>
-        </View>
-        <View style={{ height: '2%' }} />
-        <View style={{ height: '30%' }}>
-          <Button
-            disabled={!this.state.textBoxValueValid}
-            color={this.state.textBoxValueValid ? Colors.white : Colors.gray}
-            large
-            onPress={this.onSubmitOperation}
-          >
-            <Icon name={'md-checkmark-circle-outline'} style={{ fontSize: RF(20), color: this.state.textBoxValueValid ? Colors.black : Colors.white }} />
-          </Button>
-        </View>
-        <Spacer flex={1} />
-      </View>
+      </ScrollView>
     );
   }
 }
 
 MainScreen.propTypes = {
   setAppLoading: PropTypes.func.isRequired,
-  setCanRewind: PropTypes.func.isRequired
+  setCanRewind: PropTypes.func.isRequired,
+  fbFirestore: PropTypes.any.isRequired
 };
 
 export default MainScreen;

@@ -10,8 +10,6 @@ import firebase from 'react-native-firebase';
 ISSUES:
 
 -undo last is available on login screen
--rendering home screen flashes around'
--text field on home screen can stay red after login
 
 */
 
@@ -23,7 +21,8 @@ export default class App extends React.Component {
     super();
     this.state = {
       loadingDeviceLoginInfo: true,
-      successGettingLoginInfo: false
+      successGettingLoginInfo: false,
+      userID: ''
     };
 
     this.fbAuth = firebase.auth();
@@ -34,12 +33,13 @@ export default class App extends React.Component {
     try {
       const email = await RNSecureKeyStore.get(BOOJIT_EMAIL);
       const password = await RNSecureKeyStore.get(BOOJIT_PASSWORD);
-      
-      await this.fbAuth.signInWithEmailAndPassword(email, password);
+
+      const loginAttempt = await this.fbAuth.signInWithEmailAndPassword(email, password);
 
       this.setState({
         loadingDeviceLoginInfo: false,
-        successGettingLoginInfo: true
+        successGettingLoginInfo: true,
+        userID: loginAttempt.user._user.uid
       });
     } catch {
       this.setState({
@@ -47,6 +47,12 @@ export default class App extends React.Component {
         successGettingLoginInfo: false
       });
     }
+  }
+
+  setUserID = (userID: string) => {
+    this.setState({
+      userID: userID
+    });
   }
 
   render() {
@@ -57,6 +63,9 @@ export default class App extends React.Component {
         <Boojit
           successGettingLoginInfo={this.state.successGettingLoginInfo}
           fbAuth={this.fbAuth}
+          fbFirestore={this.fbFirestore}
+          userID={this.state.userID}
+          setUserID={this.setUserID}
         />
       )
     );

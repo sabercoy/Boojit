@@ -29,6 +29,7 @@ class BoojitBody extends React.Component {
             setShowLightBox={this.props.setShowLightBox}
             setAppLoading={this.props.setAppLoading}
             fbAuth={this.props.fbAuth}
+            setUserID={this.props.setUserID}
           />
         );
       case Screens.Home:
@@ -36,6 +37,8 @@ class BoojitBody extends React.Component {
           <HomeScreen
             setCanRewind={this.props.setCanRewind}
             setAppLoading={this.props.setAppLoading}
+            fbFirestore={this.props.fbFirestore}
+            userID={this.props.userID}
           />
         );
       case Screens.Categories:
@@ -74,7 +77,10 @@ BoojitBody.propTypes = {
   setCanRewind: PropTypes.func.isRequired,
   activeScreen: PropTypes.number.isRequired,
   setShowLightBox: PropTypes.func.isRequired,
-  fbAuth: PropTypes.any.isRequired
+  fbAuth: PropTypes.any.isRequired,
+  fbFirestore: PropTypes.any.isRequired,
+  userID: PropTypes.string.isRequired,
+  setUserID: PropTypes.func.isRequired
 };
 
 export default BoojitBody;

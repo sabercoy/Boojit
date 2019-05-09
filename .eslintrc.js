@@ -40,6 +40,7 @@ module.exports = {
         "react/jsx-boolean-value": "off",
         "consistent-return": "off",
         "object-curly-newline": "off",
-        "react/forbid-prop-types": "off"
+        "react/forbid-prop-types": "off",
+        "no-underscore-dangle": "off"
     }
 };

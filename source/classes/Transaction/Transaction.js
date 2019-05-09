@@ -1,8 +1,8 @@
 class Transaction {
-  constructor(id: number, userID: number, categoryID: number, amount: number, date: Date) {
+  constructor(id: number, userID: number, categoryName: string, amount: number, date: Date) {
     this.id = id ? id : 0;
     this.userID = userID ? userID : '';
-    this.categoryID = categoryID ? categoryID : 0;
+    this.categoryName = categoryName ? categoryName : '';
     this.amount = amount ? amount : '';
     this.date =  date ? date : new Date();
   }

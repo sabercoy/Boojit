@@ -93,9 +93,10 @@ class LoginScreen extends React.Component<IState, IProps> {
 
     this.props.setAppLoading(true);
     try {
-      await this.props.fbAuth.createUserWithEmailAndPassword(emailValue, passwordValue);
+      const registerAttempt = await this.props.fbAuth.createUserWithEmailAndPassword(emailValue, passwordValue);
       await RNSecureKeyStore.set(BOOJIT_EMAIL, emailValue, { accessible: ACCESSIBLE.WHEN_UNLOCKED });
       await RNSecureKeyStore.set(BOOJIT_PASSWORD, passwordValue, { accessible: ACCESSIBLE.WHEN_UNLOCKED });
+      this.props.setUserID(registerAttempt.user._user.uid);
       this.props.setActiveScreen(Screens.Home);
     } catch (error) {
       console.log(error.code);
@@ -110,9 +111,10 @@ class LoginScreen extends React.Component<IState, IProps> {
 
     this.props.setAppLoading(true);
     try {
-      await this.props.fbAuth.signInWithEmailAndPassword(emailValue, passwordValue);
+      const loginAttempt = await this.props.fbAuth.signInWithEmailAndPassword(emailValue, passwordValue);
       await RNSecureKeyStore.set(BOOJIT_EMAIL, emailValue, { accessible: ACCESSIBLE.WHEN_UNLOCKED });
       await RNSecureKeyStore.set(BOOJIT_PASSWORD, passwordValue, { accessible: ACCESSIBLE.WHEN_UNLOCKED });
+      this.props.setUserID(loginAttempt.user._user.uid);
       this.props.setActiveScreen(Screens.Home);
     } catch (error) {
       console.log(error.code);
@@ -185,7 +187,8 @@ LoginScreen.propTypes = {
   setShowLightBox: PropTypes.func.isRequired,
   setActiveScreen: PropTypes.func.isRequired,  
   setAppLoading: PropTypes.func.isRequired,
-  fbAuth: PropTypes.any.isRequired
+  fbAuth: PropTypes.any.isRequired,
+  setUserID: PropTypes.func.isRequired
 };
 
 export default LoginScreen;

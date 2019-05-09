@@ -47,6 +47,7 @@ class BoojitHeader extends React.Component {
       await this.props.fbAuth.signOut();
       await RNSecureKeyStore.remove(BOOJIT_EMAIL);
       await RNSecureKeyStore.remove(BOOJIT_PASSWORD);
+      this.props.setUserID('');
       this.props.setActiveScreen(Screens.Login);
     } catch {
       console.warn('logout failed');
@@ -117,7 +118,8 @@ BoojitHeader.propTypes = {
   setCanRewind: PropTypes.func.isRequired,
   activeScreen: PropTypes.number.isRequired,
   setActiveScreen: PropTypes.func.isRequired,
-  fbAuth: PropTypes.any.isRequired
+  fbAuth: PropTypes.any.isRequired,
+  setUserID: PropTypes.func.isRequired
 };
 
 export default BoojitHeader;
