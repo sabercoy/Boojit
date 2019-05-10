@@ -45,6 +45,7 @@ class TextField extends React.Component {
               onSubmitEditing={(event) => this.props.onSubmitValue(event.nativeEvent.text)}
               onFocus={this.props.onFocus}
               secureTextEntry={this.props.passwordField}
+              onBlur={this.props.onBlur}
             />
             {validityIcon}
           </View>
@@ -65,7 +66,8 @@ TextField.defaultProps = {
   onChangeText: undefined,
   onFocus: () => null,
   passwordField: false,
-  onSubmitValue: () => null
+  onSubmitValue: () => null,
+  onBlur: () => null
 };
 
 TextField.propTypes = {
@@ -82,7 +84,8 @@ TextField.propTypes = {
   defaultValue: PropTypes.string,
   onChangeText: PropTypes.func,
   onFocus: PropTypes.func,
-  passwordField: PropTypes.bool
+  passwordField: PropTypes.bool,
+  onBlur: PropTypes.func
 };
 
 export default TextField;

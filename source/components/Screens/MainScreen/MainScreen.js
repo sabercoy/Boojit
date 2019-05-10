@@ -13,9 +13,12 @@ interface IProps {
 }
 
 interface IState {
-  minusSelected: boolean;
-  selectedCategory: Category;
+  categories: Category[];
+  selectedCategoryName: string;
+  textBoxDone: boolean;
   textBoxValueValid: boolean;
+  totalBalance: number;
+  textBoxValue: string;
 }
 
 let textBoxValue = 0;
@@ -29,11 +32,13 @@ class MainScreen extends React.Component<IState, IProps> {
     super(props);
     this.state = {
       categories: [],
-      selectedCategory: '',
+      selectedCategoryName: '',
       textBoxDone: false,
       textBoxValueValid: false,
-      totalBalance: null
+      totalBalance: null,
+      textBoxValue: ''
     };
+
     this.textBox = React.createRef();
   }
 
@@ -41,45 +46,102 @@ class MainScreen extends React.Component<IState, IProps> {
     this.props.setAppLoading(true);
   }
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.getSetTransactionTotal();
+    this.getSetCategories();
+    this.props.setAppLoading(false);
+  }
+
+  getSetTransactionTotal = async () => {
     const transactionsQuery = this.props.fbFirestore.collection('transactions').where('user_id', '==', this.props.userID);
-    const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
-    const categories = [];
+    const categoryTally = {};
     let total = 0;
 
+    this.props.setAppLoading(true);
     try {
-      const [transactionsResult, categoriesResult] = await Promise.all([transactionsQuery.get(), categoriesQuery.get()]);
-
+      const transactionsResult = await transactionsQuery.get();
       transactionsResult.forEach(t => {
-        total += t.data().amount;
-      });
+        const transaction = t.data();
+        const tallyValue = categoryTally[transaction.category_name];
 
-      categoriesResult.forEach(c => {
-        categories.push(c.data().name);
+        total += transaction.amount;
+        categoryTally[transaction.category_name] = tallyValue ? tallyValue + 1 : 1;
       });
 
       this.setState({
         totalBalance: total,
+        selectedCategoryName: this.getMostUsedCategory(categoryTally)
+      });
+    } catch {
+      console.log('FAILED');
+    }
+    this.props.setAppLoading(false);
+  }
+
+  getMostUsedCategory = (categoryTally) => {
+    if (Object.keys(categoryTally).length === 0) {
+      return '';
+    }
+
+    let mostUsedCategory = Object.keys(categoryTally)[0];
+
+    Object.keys(categoryTally).forEach(categoryName => {
+      if (categoryTally[categoryName] > categoryTally[mostUsedCategory]) {
+        mostUsedCategory = categoryName;
+      }
+    });
+
+    return mostUsedCategory;
+  }
+
+  getSetCategories = async () => {
+    const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
+    const categories: Category[] = [];
+
+    this.props.setAppLoading(true);
+    try {
+      const categoriesResult = await categoriesQuery.get();
+
+      categoriesResult.forEach(c => {
+        const category = c.data();
+
+        categories.push(new Category(category.user_id + category.name, category.user_id, category.name, category.positive));
+      });
+
+      this.setState({
         categories: categories
       });
     } catch {
       console.log('FAILED');
     }
-
     this.props.setAppLoading(false);
   }
 
-  onSubmitOperation = () => {
+  onSubmitOperation = async () => {
+    const transactionsRef = this.props.fbFirestore.collection('transactions');
+    const finalCategory: Category = this.state.categories.find((c: Category) => c.name === this.state.selectedCategoryName);
+
     this.props.setAppLoading(true);
-    setTimeout(() => {
-      this.props.setAppLoading(false);
-      this.textBox.clear();
-      this.props.setCanRewind(true);
-      this.setState({
-        textBoxValueValid: false,
-        textBoxDone: false
+    try {
+      await transactionsRef.add({
+        amount: finalCategory.isPlus ? Math.abs(textBoxValue) : -Math.abs(textBoxValue),
+        category_name: finalCategory.name,
+        date: new Date(),
+        user_id: this.props.userID
       });
-    }, 2000);
+
+      this.setState({
+        textBoxValue: '',
+        textBoxDone: false,
+        textBoxValueValid: false
+      });
+
+      this.textBox.clear();
+      this.getSetTransactionTotal();
+    } catch {
+      console.log('FAILED');
+    }
+    this.props.setAppLoading(false);
   }
 
   onDollarAmountDone = (value) => {
@@ -102,15 +164,17 @@ class MainScreen extends React.Component<IState, IProps> {
     }
   }
 
-  onTextBoxValueChange = () => {
+  onTextBoxValueChange = (newValue: string) => {
     this.setState({
       textBoxValueValid: false,
-      textBoxDone: false
+      textBoxDone: false,
+      textBoxValue: newValue
     });
   }
 
   formatTotal = (amount: number): string[] => {
-    const stringAmount = amount.toFixed(2);
+    const isNegative = amount < 0;
+    const stringAmount = Math.abs(amount).toFixed(2);
     const [whole, decimal] = stringAmount.split('.');
     const lastIndex = whole.length - 1;
     let formattedWhole = '';
@@ -124,12 +188,22 @@ class MainScreen extends React.Component<IState, IProps> {
       count++;
     }
 
+    if (isNegative) {
+      formattedWhole = '-' + formattedWhole;
+    }
+
     return [formattedWhole, decimal];
+  }
+
+  onChangeCategory = (newCategoryName: string) => {
+    this.setState({
+      selectedCategoryName: newCategoryName
+    });
   }
 
   render() {
     const formattedTotal = this.state.totalBalance === null ? ['', ''] : this.formatTotal(this.state.totalBalance);
-    const enableSubmit = this.state.textBoxValueValid && this.state.selectedCategory;
+    const enableSubmit = this.state.textBoxValueValid && this.state.selectedCategoryName;
 
     return (
       <ScrollView
@@ -161,16 +235,17 @@ class MainScreen extends React.Component<IState, IProps> {
               error={this.state.textBoxDone && !this.state.textBoxValueValid}
               success={this.state.textBoxDone && this.state.textBoxValueValid}
               moneyField
+              onBlur={() => this.onDollarAmountDone(this.state.textBoxValue)}
             />
           </View>
           <View style={{ height: '1%' }} />
           <View style={{ height: '10%', backgroundColor: Colors.white, borderRadius: 50 }}>
             <Picker
               rounded
-              selectedValue={this.state.selectedCategory}
-              onValueChange={(newValue) => { this.setState({ selectedCategory: newValue }); }}
+              selectedValue={this.state.selectedCategoryName}
+              onValueChange={this.onChangeCategory}
             >
-              {this.state.categories.map(i => <Picker.Item key={i} label={i} value={i} />)}
+              {this.state.categories.map((c: Category) => <Picker.Item key={c.id} label={c.name} value={c.name} />)}
             </Picker>
           </View>
           <View style={{ height: '4%' }} />
@@ -193,8 +268,9 @@ class MainScreen extends React.Component<IState, IProps> {
 
 MainScreen.propTypes = {
   setAppLoading: PropTypes.func.isRequired,
-  setCanRewind: PropTypes.func.isRequired,
-  fbFirestore: PropTypes.any.isRequired
+  //setCanRewind: PropTypes.func.isRequired,  //replace this with a function that adds to a global list of transactions
+  fbFirestore: PropTypes.any.isRequired,
+  userID: PropTypes.string.isRequired
 };
 
 export default MainScreen;
