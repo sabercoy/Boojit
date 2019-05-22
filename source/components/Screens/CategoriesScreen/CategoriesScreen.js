@@ -67,7 +67,14 @@ class CategoriesScreen extends React.Component<IProps, IState> {
     this.props.setAppLoading(true);
   }
 
-  async componentDidMount() {
+  componentDidMount() {
+    this.refreshCategories();
+    this.props.setAppLoading(false);
+  }
+
+  refreshCategories = async () => {
+    this.props.setAppLoading(true);
+
     const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
     const categories: Category[] = [];
 
@@ -76,8 +83,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
 
       categoriesResult.forEach(c => {
         const category = c.data();
-
-        categories.push(new Category(category.user_id + category.name, category.user_id, category.name, category.positive));
+        categories.push(new Category(c._ref._documentPath._parts[1], category.user_id, category.name, category.positive));
       });
 
       this.setState({
@@ -97,11 +103,13 @@ class CategoriesScreen extends React.Component<IProps, IState> {
         initialCategory={this.state.selectedCategory}
         onClose={() => this.props.setShowLightBox(false)}
         addingCategory={addingCategory}
+        onSave={this.onSaveCategory}
+        onDelete={this.onDeleteCategory}
       />
     );
   }
 
-  onAddListItem = (doingPlus) => {
+  onAddListItemClicked = (doingPlus: boolean) => {
     isPlusOperation = doingPlus;
     addingCategory = true;
 
@@ -112,7 +120,47 @@ class CategoriesScreen extends React.Component<IProps, IState> {
     });
   }
 
-  onEditListItem = (doingPlus, listItemID) => {
+  onDeleteCategory = async () => {
+    const categoriesRef = this.props.fbFirestore.collection('categories').doc(this.state.selectedCategory.id);
+
+    this.props.setAppLoading(true);
+
+    try {
+      await categoriesRef.delete();
+    } catch {
+      console.log('FAILED');
+    }
+
+    this.refreshCategories();
+    this.props.setAppLoading(false);
+  }
+
+  onSaveCategory = async (newCategoryName: string) => {
+    this.props.setAppLoading(true);
+
+    try {
+      if (addingCategory) {
+        this.props.fbFirestore.collection('categories').add({
+          name: newCategoryName,
+          positive: isPlusOperation,
+          user_id: this.props.userID
+        });
+      } else {
+        const categoriesRef = this.props.fbFirestore.collection('categories').doc(this.state.selectedCategory.id);
+
+        await categoriesRef.update({
+          name: newCategoryName
+        });
+      }
+    } catch {
+      console.log('FAILED');
+    }
+
+    this.refreshCategories();
+    this.props.setAppLoading(false);
+  }
+
+  onEditListItemClicked = (doingPlus, listItemID) => {
     isPlusOperation = doingPlus;
     addingCategory = false;
     let newSelectedCategory;
@@ -141,7 +189,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
           component: (
             <ListItem key={category.id} style={styles.listItem}>
               <Text style={styles.listText}>{category.name}</Text>
-              <TouchableWithoutFeedback onPress={() => this.onEditListItem(true, category.id)}>
+              <TouchableWithoutFeedback onPress={() => this.onEditListItemClicked(true, category.id)}>
                 <Icon name={'md-create'} />
               </TouchableWithoutFeedback>
             </ListItem>
@@ -157,7 +205,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
           component: (
             <ListItem key={category.id} style={styles.listItem}>
               <Text style={styles.listText}>{category.name}</Text>
-              <TouchableWithoutFeedback onPress={() => this.onEditListItem(false, category.id)}>
+              <TouchableWithoutFeedback onPress={() => this.onEditListItemClicked(false, category.id)}>
                 <Icon name={'md-create'} />
               </TouchableWithoutFeedback>
             </ListItem>
@@ -180,7 +228,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
           </View>
           <Spacer flex={0.05} />
           <View style={styles.buttonContainer}>
-            <Button width={'90%'} onPress={() => this.onAddListItem(true)}>
+            <Button width={'90%'} onPress={() => this.onAddListItemClicked(true)}>
               <Text style={{ fontSize: RF(6) }}>NEW +</Text>
             </Button>
           </View>
@@ -198,7 +246,7 @@ class CategoriesScreen extends React.Component<IProps, IState> {
           </View>
           <Spacer flex={0.05} />
           <View style={styles.buttonContainer}>
-            <Button width={'90%'} onPress={() => this.onAddListItem(false)}>
+            <Button width={'90%'} onPress={() => this.onAddListItemClicked(false)}>
               <Text style={{ fontSize: RF(6) }}>NEW -</Text>
             </Button>
           </View>

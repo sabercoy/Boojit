@@ -11,11 +11,13 @@ interface IProps {
   initialCategory: Category;
   addingCategory: boolean;
   onClose: () => void;
+  onSave: () => void;
 }
 
 interface IState {
   selectedCategory: Category;
   categoryNameValid: boolean;
+  categoryName: string;
 }
 
 let textBoxDone = false;
@@ -27,7 +29,8 @@ class CategoryAddEdit extends React.Component<IProps, IState> {
     super(props);
     this.state = {
       selectedCategory: this.props.initialCategory,
-      categoryNameValid: false
+      categoryNameValid: false,
+      categoryName: ''
     };
   }
 
@@ -38,29 +41,29 @@ class CategoryAddEdit extends React.Component<IProps, IState> {
 
   onDelete = () => {
     textBoxDone = false;
-    console.log(/*this.state.initialItem*/);
-    //make web call then:
+    this.props.onDelete();
     this.props.onClose();
   }
 
   onSave = () => {
     textBoxDone = false;
-    console.log(/*this.state.initialItem*/);
-    //make web call then:
+    this.props.onSave(this.state.categoryName);
     this.props.onClose();
   }
 
-  onSubmitTextBoxValue = (value) => {
+  onSubmitTextBoxValue = (value: string) => {
     textBoxDone = true;
     const valid = value.match(/^([A-Za-z]|[0-9])+$/g);
 
     if (valid) {
       this.setState({
-        categoryNameValid: true
+        categoryNameValid: true,
+        categoryName: value
       });
     } else {
       this.setState({
-        categoryNameValid: false
+        categoryNameValid: false,
+        categoryName: ''
       });
     }
   }
@@ -132,7 +135,9 @@ class CategoryAddEdit extends React.Component<IProps, IState> {
 CategoryAddEdit.propTypes = {
   initialCategory: PropTypes.instanceOf(Category).isRequired,
   addingCategory: PropTypes.bool.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired
 };
 
 export default CategoryAddEdit;

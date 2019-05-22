@@ -47,12 +47,12 @@ class MainScreen extends React.Component<IState, IProps> {
   }
 
   componentDidMount() {
-    this.getSetTransactionTotal();
-    this.getSetCategories();
+    this.refreshTransactionTotal();
+    this.refreshCategories();
     this.props.setAppLoading(false);
   }
 
-  getSetTransactionTotal = async () => {
+  refreshTransactionTotal = async () => {
     const transactionsQuery = this.props.fbFirestore.collection('transactions').where('user_id', '==', this.props.userID);
     const categoryTally = {};
     let total = 0;
@@ -94,7 +94,7 @@ class MainScreen extends React.Component<IState, IProps> {
     return mostUsedCategory;
   }
 
-  getSetCategories = async () => {
+  refreshCategories = async () => {
     const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
     const categories: Category[] = [];
 
@@ -120,8 +120,9 @@ class MainScreen extends React.Component<IState, IProps> {
   onSubmitOperation = async () => {
     const transactionsRef = this.props.fbFirestore.collection('transactions');
     const finalCategory: Category = this.state.categories.find((c: Category) => c.name === this.state.selectedCategoryName);
-
+    
     this.props.setAppLoading(true);
+
     try {
       await transactionsRef.add({
         amount: finalCategory.isPlus ? Math.abs(textBoxValue) : -Math.abs(textBoxValue),
@@ -137,10 +138,11 @@ class MainScreen extends React.Component<IState, IProps> {
       });
 
       this.textBox.clear();
-      this.getSetTransactionTotal();
     } catch {
       console.log('FAILED');
     }
+
+    this.refreshTransactionTotal();
     this.props.setAppLoading(false);
   }
 
