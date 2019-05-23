@@ -8,8 +8,10 @@ import PropTypes from 'prop-types';
 import { Category, Transaction } from '../../../classes';
 import { DateUtilities } from '../../../utilities';
 
+//order dates
+
 interface PieChartSection {
-  categoryID: number;
+  categoryName: string;
   totalAmount: number;
 }
 
@@ -51,55 +53,62 @@ class StatsScreen extends React.Component<IProps, IState> {
     super(props);
     this.state = {
       plusMode: false,
-      categoryList: [
-        new Category(1, 1, 'h', true),
-        new Category(2, 1, 'i', true),
-        new Category(3, 1, 'j', true),
-        new Category(4, 1, 'k', true),
-        new Category(5, 1, 'l', true),
-        new Category(6, 1, 'm', true),
-        new Category(7, 1, 'n', true),
-        new Category(8, 1, 'k', true),
-        new Category(9, 1, 'h', true),
-        new Category(10, 1, 'i', true),
-        new Category(11, 1, 'j', true),
-        new Category(12, 1, 'k', true),
-
-        new Category(13, 1, 'a', false), //minus here and below
-        new Category(14, 1, 'b', false),
-        new Category(15, 1, 'c', false),
-        new Category(16, 1, 'd', false),
-        new Category(17, 1, 'e', false),
-        new Category(18, 1, 'f', false),
-        new Category(19, 1, 'g', false)
-      ],
-      transactionList: [                            //TODO: order this by date in DB or webservice
-        new Transaction(5, 1, 3, 9.67, new Date()),
-        new Transaction(10, 1, 6, 9.67, new Date()),
-        new Transaction(4, 1, 2, 8.67, new Date()),
-        new Transaction(9, 1, 5, 8.67, new Date()),
-        new Transaction(3, 1, 2, 7.67, new Date()),
-        new Transaction(8, 1, 4, 7.67, new Date()),
-        new Transaction(2, 1, 1, 6.67, new Date()),
-        new Transaction(7, 1, 3, 6.67, new Date()),
-        new Transaction(1, 1, 1, 5.67, new Date()),
-        new Transaction(6, 1, 3, 5.67, new Date()),
-
-        new Transaction(9, 1, 15, 4.67, new Date()),
-        new Transaction(8, 1, 14, 3.67, new Date()),
-        new Transaction(7, 1, 13, 2.67, new Date()),
-        new Transaction(6, 1, 13, 1.67, new Date()),
-      ],
+      categoryList: [],
+      transactionList: [],
       pieChartSections: [],
       fromDate: DATE_MONTH_AGO,
       toDate: DATE_NOW
     };
   }
 
-  componentDidMount() {
-    //fetch categoryList and transactionList then call calculatePieChartSections()
+  componentWillMount() {
+    this.props.setAppLoading(true);
+  }
 
-    this.calculatePieChartSections();
+  componentDidMount() {
+    this.refreshScreen();
+    this.props.setAppLoading(false);
+  }
+
+  refreshScreen = async () => {
+    const transactionsQuery = this.props.fbFirestore.collection('transactions').where('user_id', '==', this.props.userID);
+    const categoriesQuery = this.props.fbFirestore.collection('categories').where('user_id', '==', this.props.userID);
+    const newTransactionList: Transaction[] = [];
+    const newCategoriesList: Category[] = [];
+
+    this.props.setAppLoading(true);
+    try {
+      const [transactionsResult, categoriesResult] = await Promise.all([transactionsQuery.get(), categoriesQuery.get()]);
+
+      transactionsResult.forEach(t => {
+        const transaction = t.data();
+        newTransactionList.push(new Transaction(
+          t._ref._documentPath._parts[1],
+          transaction.user_id,
+          transaction.category_name,
+          Math.abs(transaction.amount),
+          transaction.date
+        ));        
+      });
+
+      categoriesResult.forEach(c => {
+        const category = c.data();
+        newCategoriesList.push(new Category(
+          category.user_id + category.name,
+          category.user_id,
+          category.name,
+          category.positive
+        ));
+      });
+
+      this.setState({
+        transactionList: newTransactionList,
+        categoryList: newCategoriesList
+      }, this.calculatePieChartSections);
+    } catch {
+      console.log('FAILED');
+    }
+    this.props.setAppLoading(false);
   }
 
   formatDateRange = (fromDate, toDate) => {
@@ -110,18 +119,18 @@ class StatsScreen extends React.Component<IProps, IState> {
     const newPieChartSections: PieChartSection[] = [];
 
     const transactionList = this.state.plusMode ? (
-      this.state.transactionList.filter(t => this.mapCategoryIDToIsPlus(t.categoryID))
+      this.state.transactionList.filter(t => this.mapCategoryNameToIsPlus(t.categoryName))
     ) : (
-      this.state.transactionList.filter(t => !this.mapCategoryIDToIsPlus(t.categoryID))
+      this.state.transactionList.filter(t => !this.mapCategoryNameToIsPlus(t.categoryName))
     );
 
-    transactionList.forEach(t => {
-      const uniqueCategoryIndex = newPieChartSections.findIndex(s => s.categoryID === t.categoryID);
+    transactionList.forEach((t: Transaction) => {
+      const uniqueCategoryIndex = newPieChartSections.findIndex(s => s.categoryName === t.categoryName);
 
       if (uniqueCategoryIndex === -1) {
         newPieChartSections.push(
           {
-            categoryID: t.categoryID,
+            categoryName: t.categoryName,
             totalAmount: t.amount
           }
         );
@@ -143,21 +152,11 @@ class StatsScreen extends React.Component<IProps, IState> {
     }), this.calculatePieChartSections);
   }
 
-  mapCategoryIDToString = (categoryID: number): string => {
+  mapCategoryNameToIsPlus = (categoryName: string): boolean => {
     const { categoryList } = this.state;
 
     for (let i = 0; i < categoryList.length; i++) {
-      if (categoryList[i].id === categoryID) {
-        return categoryList[i].name;
-      }
-    }
-  }
-
-  mapCategoryIDToIsPlus = (categoryID: number): boolean => {
-    const { categoryList } = this.state;
-
-    for (let i = 0; i < categoryList.length; i++) {
-      if (categoryList[i].id === categoryID) {
+      if (categoryList[i].name === categoryName) {
         return categoryList[i].isPlus;
       }
     }
@@ -244,7 +243,7 @@ class StatsScreen extends React.Component<IProps, IState> {
               this.state.pieChartSections.map((s, index) => (
                 [
                   <Square color={colors[index]} sideLength={15} />,
-                  <Text>{this.mapCategoryIDToString(s.categoryID)}</Text>,
+                  <Text>{s.categoryName}</Text>,
                   <Text>{'$' + s.totalAmount.toFixed(2)}</Text>
                 ]
               ))
@@ -265,13 +264,13 @@ class StatsScreen extends React.Component<IProps, IState> {
               rows={
                 this.state.transactionList.map(t => (
                   [
-                    <View style={{ backgroundColor: (this.mapCategoryIDToIsPlus(t.categoryID) ? Colors.lightGreen : Colors.lightRed) }}>
+                    <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>
                       <Text>{DateUtilities.formatDate(t.date)}</Text>
                     </View>,
-                    <View style={{ backgroundColor: (this.mapCategoryIDToIsPlus(t.categoryID) ? Colors.lightGreen : Colors.lightRed) }}>                    
-                      <Text>{this.mapCategoryIDToString(t.categoryID)}</Text>
+                    <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>                    
+                      <Text>{t.categoryName}</Text>
                     </View>,
-                    <View style={{ backgroundColor: (this.mapCategoryIDToIsPlus(t.categoryID) ? Colors.lightGreen : Colors.lightRed) }}>                    
+                    <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>                    
                       <Text>{'$' + t.amount}</Text>
                     </View>                    
                   ]
@@ -305,7 +304,7 @@ class StatsScreen extends React.Component<IProps, IState> {
 
 StatsScreen.propTypes = {
   setShowLightBox: PropTypes.func.isRequired,
-  //setAppLoading: PropTypes.func.isRequired    //TODO: use this
+  setAppLoading: PropTypes.func.isRequired
 };
 
 export default StatsScreen;

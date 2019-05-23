@@ -55,6 +55,8 @@ class BoojitBody extends React.Component {
           <StatsScreen
             setShowLightBox={this.props.setShowLightBox}
             setAppLoading={this.props.setAppLoading}
+            fbFirestore={this.props.fbFirestore}
+            userID={this.props.userID}
           />
         );
       default:
