@@ -116,7 +116,7 @@ class BoojitHeader extends React.Component {
 
 BoojitHeader.propTypes = {
   setAppLoading: PropTypes.func.isRequired,
-  canRewind: PropTypes.bool.isRequired,
+  //canRewind: PropTypes.bool.isRequired,
   setCanRewind: PropTypes.func.isRequired,
   activeScreen: PropTypes.number.isRequired,
   setActiveScreen: PropTypes.func.isRequired,
