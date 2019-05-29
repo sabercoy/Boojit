@@ -79,12 +79,14 @@ class BoojitHeader extends React.Component {
           </Title>
         </Body>
         <Right>
+          {/*
           <TouchableWithoutFeedback onPress={this.props.canRewind ? this.rewindLastOperation : () => null}>
             <Icon
               name={'md-undo'}
               style={{ color: this.props.canRewind ? Colors.white : Colors.lightGreen }}
             />
           </TouchableWithoutFeedback>
+          */}
           <Spacer width={'15%'} />
           <TouchableWithoutFeedback onPress={disableCategories ? () => null : () => this.props.setActiveScreen(Screens.Categories)}>
             <Icon

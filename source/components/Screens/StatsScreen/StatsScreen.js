@@ -8,8 +8,6 @@ import PropTypes from 'prop-types';
 import { Category, Transaction } from '../../../classes';
 import { DateUtilities } from '../../../utilities';
 
-//order dates
-
 interface PieChartSection {
   categoryName: string;
   totalAmount: number;
@@ -46,7 +44,7 @@ const styles = StyleSheet.create({
 
 const MONTH = 2592000000;
 const DATE_NOW = new Date();
-const DATE_MONTH_AGO = new Date(DATE_NOW.getTime() - MONTH);
+const START_OF_2019 = new Date('1/1/2019');
 
 class StatsScreen extends React.Component<IProps, IState> {
   constructor(props) {
@@ -56,7 +54,7 @@ class StatsScreen extends React.Component<IProps, IState> {
       categoryList: [],
       transactionList: [],
       pieChartSections: [],
-      fromDate: DATE_MONTH_AGO,
+      fromDate: START_OF_2019,
       toDate: DATE_NOW
     };
   }
@@ -91,6 +89,8 @@ class StatsScreen extends React.Component<IProps, IState> {
         ));        
       });
 
+      newTransactionList.sort((a, b) => a.date.valueOf() < b.date.valueOf());
+
       categoriesResult.forEach(c => {
         const category = c.data();
         newCategoriesList.push(new Category(
@@ -119,9 +119,13 @@ class StatsScreen extends React.Component<IProps, IState> {
     const newPieChartSections: PieChartSection[] = [];
 
     const transactionList = this.state.plusMode ? (
-      this.state.transactionList.filter(t => this.mapCategoryNameToIsPlus(t.categoryName))
+      this.state.transactionList.filter((t: Transaction) => {
+        return this.mapCategoryNameToIsPlus(t.categoryName) && this.dateInsideRange(t.date);
+      })
     ) : (
-      this.state.transactionList.filter(t => !this.mapCategoryNameToIsPlus(t.categoryName))
+      this.state.transactionList.filter((t: Transaction) => {
+        return !this.mapCategoryNameToIsPlus(t.categoryName) && this.dateInsideRange(t.date);
+      })
     );
 
     transactionList.forEach((t: Transaction) => {
@@ -181,11 +185,40 @@ class StatsScreen extends React.Component<IProps, IState> {
     this.setState({
       fromDate: fromDate,
       toDate: toDate
+    }, this.calculatePieChartSections);
+  }
+
+  dateInsideRange = (date: Date) => {
+    return date.valueOf() >= this.state.fromDate.valueOf() && date.valueOf() <= this.state.toDate.valueOf();
+  }
+
+  getTransactionTableRows = () => {
+    const transactionRows = [];
+
+    this.state.transactionList.forEach((t: Transaction) => {
+      if (this.dateInsideRange(t.date)) {
+        transactionRows.push(
+          [
+            <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>
+              <Text>{DateUtilities.formatDate(t.date)}</Text>
+            </View>,
+            <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>                    
+              <Text>{t.categoryName}</Text>
+            </View>,
+            <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>                    
+              <Text>{'$' + t.amount}</Text>
+            </View>                    
+          ]
+        );
+      }
     });
+
+    return transactionRows;
   }
 
   render() {
     const listItems = [];
+    const TOTAL_DAYS = (this.state.toDate.valueOf() - this.state.fromDate.valueOf()) / 86400000;
 
     const plusButton = (
       <View style={{ width: 0.20 * chartWidth, height: 0.20 * chartWidth }}>
@@ -194,7 +227,7 @@ class StatsScreen extends React.Component<IProps, IState> {
           large
           onPress={this.toggleMode}
         >
-          <Icon name={this.state.plusMode ? 'md-add' : 'md-remove'} style={{ fontSize: RF(5), color: Colors.black }} />
+          <Icon name={this.state.plusMode ? 'md-remove' : 'md-add'} style={{ fontSize: RF(5), color: Colors.black }} />
         </Button>
       </View>
     );
@@ -233,26 +266,74 @@ class StatsScreen extends React.Component<IProps, IState> {
       }
     );
 
-    const categoryTable = (
-      {
-        key: '3',
-        component: (
-          <Table
-            backgroundColor={Colors.white}
-            rows={
-              this.state.pieChartSections.map((s, index) => (
-                [
-                  <Square color={colors[index]} sideLength={15} />,
-                  <Text>{s.categoryName}</Text>,
-                  <Text>{'$' + s.totalAmount.toFixed(2)}</Text>
-                ]
-              ))
-            }
-            columnWidths={['5%', '40%', '55%']}
-          />
-        )
-      }
-    );
+    const statsTables = ((() => {   //immediately invoked array function (why JavaScript...)
+      let plusTotal = 0;
+      let minusTotal = 0;
+      let plusDailyAvg = 0;
+      let minusDailyAvg = 0;
+
+      this.state.transactionList.forEach((t: Transaction) => {
+        if (this.dateInsideRange(t.date)) {
+          if (this.mapCategoryNameToIsPlus(t.categoryName)) {
+            plusTotal += t.amount;
+          } else {
+            minusTotal += t.amount;
+          }
+        }
+      });
+
+      plusDailyAvg = (plusTotal / TOTAL_DAYS);
+      minusDailyAvg = (minusTotal / TOTAL_DAYS);
+
+      const spendingPercentages = [];
+
+      return (
+        {
+          key: '3',
+          component: (
+            <View>
+              <Table
+                backgroundColor={Colors.white}
+                rows={[
+                  [
+                    <Text>{'Plus Total:'}</Text>,
+                    <Text>{'$' + plusTotal.toFixed(2)}</Text>
+                  ],
+                  [
+                    <Text>{'Minus Total:'}</Text>,
+                    <Text>{'$' + minusTotal.toFixed(2)}</Text>
+                  ],
+                  [
+                    <Text>{'Plus Daily Avg:'}</Text>,
+                    <Text>{'$' + plusDailyAvg.toFixed(2)}</Text>
+                  ],
+                  [
+                    <Text>{'Minus Daily Avg:'}</Text>,
+                    <Text>{'$' + minusDailyAvg.toFixed(2)}</Text>
+                  ]
+                ]}
+                columnWidths={['45%', '55%']}
+              />
+              <Spacer height={15} />
+              <Table
+                backgroundColor={Colors.white}
+                rows={
+                  this.state.pieChartSections.map((s, index) => (
+                    [
+                      <Square color={colors[index]} sideLength={15} />,
+                      <Text>{s.categoryName}</Text>,
+                      <Text>{'$' + s.totalAmount.toFixed(2)}</Text>,
+                      <Text>{(s.totalAmount / Math.abs(this.state.plusMode ? plusTotal : minusTotal) * 100).toFixed(0) + '%'}</Text>
+                    ]
+                  ))
+                }
+                columnWidths={['5%', '40%', '35%', '20%']}
+              />
+            </View>
+          )
+        }
+      );
+    })());
 
     const transactionTable = (
       {
@@ -261,21 +342,7 @@ class StatsScreen extends React.Component<IProps, IState> {
           <View style={{ marginTop: 15 }}>
             <Table
               backgroundColor={Colors.white}
-              rows={
-                this.state.transactionList.map(t => (
-                  [
-                    <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>
-                      <Text>{DateUtilities.formatDate(t.date)}</Text>
-                    </View>,
-                    <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>                    
-                      <Text>{t.categoryName}</Text>
-                    </View>,
-                    <View style={{ backgroundColor: (this.mapCategoryNameToIsPlus(t.categoryName) ? Colors.lightGreen : Colors.lightRed) }}>                    
-                      <Text>{'$' + t.amount}</Text>
-                    </View>                    
-                  ]
-                ))
-              }
+              rows={this.getTransactionTableRows()}
               columnWidths={['25%', '30%', '45%']}
             />
           </View>
@@ -285,7 +352,7 @@ class StatsScreen extends React.Component<IProps, IState> {
 
     listItems.push(timePeriodButton);
     listItems.push(pieChart);
-    listItems.push(categoryTable);
+    listItems.push(statsTables);
     listItems.push(transactionTable);
 
     return (
