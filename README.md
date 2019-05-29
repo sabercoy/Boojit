@@ -4,11 +4,11 @@ Will need your own /android/app/google-services.json and /android/local.properti
 
 <div>
   <img src="/assets/Login.png" width="33%" display="inline-block" />
-  <img src="/assets/Home1.png" width="33%" />
-  <img src="/assets/Home2.png" width="33%" />
+  <img src="/assets/Home1.png" width="33%" display="inline-block" />
+  <img src="/assets/Home2.png" width="33%" display="inline-block" />
 </div>
 <div>
-  <img src="/assets/Category.png" width="33%" />
-  <img src="/assets/Stats1.png" width="33%" />
-  <img src="/assets/Stats2.png" width="33%" />
+  <img src="/assets/Category.png" width="33%" display="inline-block" />
+  <img src="/assets/Stats1.png" width="33%" display="inline-block" />
+  <img src="/assets/Stats2.png" width="33%" display="inline-block" />
 </div>
